@@ -962,8 +962,8 @@ function fromFiles(app: string, source: string): Fetched {
 /** What the single-file program tells a person who asks it to upgrade: it is replaced by the newer release, which is installed differently on Windows. */
 export function singleFileUpgradeAdvice(platform: NodeJS.Platform): string {
   const how = platform === 'win32'
-    ? 'download the newer windows-x64.exe from https://github.com/sitotisai/tabularius/releases/latest and put it in place of this program (stop the service first if one runs it)'
-    : 'run the install command again (curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh)';
+    ? 'download the newer windows-x64.exe from https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest and put it in place of this program (stop the service first if one runs it)'
+    : 'run the install command again (curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh)';
   return `this is the single-file program, which upgrades by installing the newer release over it: ${how}, then restart the service if one runs it`;
 }
 

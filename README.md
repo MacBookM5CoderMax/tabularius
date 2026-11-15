@@ -12,7 +12,7 @@ app on this computer only:
 
 <!-- docs-example: illustrative -->
 ```sh
-curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh
+curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh
 tabularius demo
 ```
 
@@ -115,8 +115,8 @@ FileMaker file.
 
 ## Questions and contact
 
-Ask questions and share ideas in [GitHub Discussions](https://github.com/sitotisai/tabularius/discussions), report bugs in
-[Issues](https://github.com/sitotisai/tabularius/issues/new/choose), and report a security problem privately as
+Ask questions and share ideas in [GitHub Discussions](https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/discussions), report bugs in
+[Issues](https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/issues/new/choose), and report a security problem privately as
 [SECURITY.md](SECURITY.md) says. For anything private that is not a vulnerability, write to
 [hello@tabularius.dev](mailto:hello@tabularius.dev). [SUPPORT.md](SUPPORT.md) lists all of these in one place.
 

