@@ -5,7 +5,7 @@ Teaches Claude Code to work with a hosted Tabularius solution through its `/mcp`
 ## Install
 
 ```
-/plugin marketplace add sitotisai/tabularius
+/plugin marketplace add MacBookM5CoderMax/OpenSourceFilemaker
 /plugin install tabularius@tabularius
 ```
 

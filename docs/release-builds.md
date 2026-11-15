@@ -106,7 +106,7 @@ one list.
 `scripts/get.sh` is attached to every release, so
 
 ```sh
-curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh
+curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh
 ```
 
 always runs the installer that came with the newest published release (pre-releases and drafts are not "latest").
@@ -141,7 +141,7 @@ who made it.
 
    Do this before making the release tag. The check is deliberately not part of the normal gates, so development can keep readable tags while release builds require pinned digests. The release workflow itself does not run this check; its description here is the release instruction.
 4. Run the workflow by hand with `version` `<version>-rc.1` and `publish` `prerelease`, then
-   `curl -fsSL https://github.com/sitotisai/tabularius/releases/download/v<version>-rc.1/get.sh | sh -s -- --version <version>-rc.1`
+   `curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/download/v<version>-rc.1/get.sh | sh -s -- --version <version>-rc.1`
    on a clean machine, and `tabularius demo`. Delete the pre-release and its tag when done.
 5. Tag the commit: `git tag v<version> && git push origin v<version>`. Read the draft release, then publish it.
 

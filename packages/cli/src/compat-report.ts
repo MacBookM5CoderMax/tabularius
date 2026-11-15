@@ -26,7 +26,7 @@ type Tally = Record<string, number>;
 
 export const COMPAT_REPORT_TOOL = 'tabularius compatibility-report';
 /** Where a person files the report: an issue form in the project's repository. */
-export const COMPAT_REPORT_ISSUE_URL = 'https://github.com/sitotisai/tabularius/issues/new?template=compatibility_report.md';
+export const COMPAT_REPORT_ISSUE_URL = 'https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/issues/new?template=compatibility_report.md';
 
 /** The counts a report may carry; each is a number of things, never a name. */
 const COUNT_KEYS = [
@@ -241,7 +241,7 @@ export function compatReportMarkdown(r: CompatReport): string {
   const { functions, getOptions, scriptSteps } = r.notYet;
   if (f.status === 'ok') {
     lines.push('### What Tabularius does not know yet', '');
-    if (!functions.length && !getOptions.length && !scriptSteps.length) lines.push('Nothing: Tabularius recognises every function, Get ( ) option and script step in the file. Recognising one is not the same as every option of it working: [script-steps-support.md](https://github.com/sitotisai/tabularius/blob/main/docs/script-steps-support.md) lists which steps are partial.', '');
+    if (!functions.length && !getOptions.length && !scriptSteps.length) lines.push('Nothing: Tabularius recognises every function, Get ( ) option and script step in the file. Recognising one is not the same as every option of it working: [script-steps-support.md](https://github.com/MacBookM5CoderMax/OpenSourceFilemaker/blob/main/docs/script-steps-support.md) lists which steps are partial.', '');
     else {
       lines.push(...list('Calculation functions (by id)', functions, 'Id'), ...list('Get ( ) options (by id)', getOptions, 'Id'), ...list('Script steps (by id)', scriptSteps, 'Step id'));
     }
