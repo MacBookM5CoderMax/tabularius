@@ -32,6 +32,7 @@ export interface Hop {
 }
 
 const SQL_OPS: Record<string, string> = { '=': '=', '≠': '<>', '<': '<', '≤': '<=', '>': '>', '≥': '>=' };
+const converse = (op: string) => ({ '<': '>', '≤': '≥', '>': '<', '≥': '≤' } as Record<string, string>)[op] ?? op;
 
 /** A typed comparison used by both portal helpers and calculation lookups. */
 export function matchPredicate(op: string, from: Field, to: Field, input: SqlValue[]): { where: string; params: SqlValue[] } | undefined {
@@ -154,7 +155,7 @@ export function condition(hop: Hop, from: Occurrence, to: Occurrence, row: Recor
     const [fromId, toId] = hop.forward ? [p.leftFieldId, p.rightFieldId] : [p.rightFieldId, p.leftFieldId];
     let op = p.operator as string;
     // FileMaker reads "Left::a < Right::b" as left op right; the query compares the far side's field, so walking left to right flips it.
-    if (hop.forward) op = ({ '<': '>', '≤': '≥', '>': '<', '≥': '≤' } as Record<string, string>)[op] ?? op;
+    if (hop.forward) op = converse(op);
     if (op === '×') continue;
     const a = from.table.fields.find((f) => f.id === fromId);
     const field = to.table.fields.find((f) => f.id === toId);
@@ -174,6 +175,126 @@ export interface RelatedResult {
   rows: Record<string, SqlValue>[];
   /** Matching records in all. */
   count: number;
+}
+
+type FindRow = Record<string, SqlValue>;
+
+/** Stored parent keys whose forward value need not compare as the indexed scalar does. */
+export function exceptionalMatchKeys(field: Field): string {
+  const col = q(field.name);
+  if (field.type === 'number') return `typeof(${col}) = 'text'`;
+  const lines = `instr(${col}, char(10)) > 0 OR instr(${col}, char(13)) > 0`;
+  return `(${lines}${field.type === 'uuid' ? ` OR ${col} <> lower(${col})` : ''})`;
+}
+
+const scalarKey = (field: Field) => field.type === 'decimal' ? `fm_decimal_key(${q(field.name)})`
+  : q(field.name) + (field.type === 'text' ? ' COLLATE NOCASE' : '');
+
+/** Indexed converse for ordinary stored keys. The optional witness is an actual hit, never a grant of access. */
+function* findCandidates(hop: Hop, source: Occurrence, target: Occurrence, hits: Set<number>, select: string): Generator<{ row: FindRow; witness?: number }> {
+  const predicates: string[] = [];
+  const bindings: string[] = [];
+  const targetKeys = new Set<string>();
+  const exceptions = new Set<string>();
+  const joins = hop.rel.predicates.filter((predicate) => predicate.operator !== '×');
+  let bounds: { field: Field; op: string } | undefined;
+  for (const predicate of joins) {
+    const parent = source.table.fields.find((field) => field.id === (hop.forward ? predicate.leftFieldId : predicate.rightFieldId));
+    const child = target.table.fields.find((field) => field.id === (hop.forward ? predicate.rightFieldId : predicate.leftFieldId));
+    if (!parent || !child) return;
+    targetKeys.add(q(child.name));
+    if (parent.options?.global || parent.options?.unstored || parent.kind === 'summary' || parent.type !== child.type) continue;
+    source.store.calc.ensureIndex(source.table, parent);
+    source.store.calc.ensureIndex(source.table, parent, true);
+    exceptions.add(exceptionalMatchKeys(parent));
+    const lhs = scalarKey(parent);
+    const rhs = parent.type === 'decimal' ? 'fm_decimal_key(?)' : '?';
+    const op = SQL_OPS[hop.forward ? predicate.operator : converse(predicate.operator)];
+    if (!op) return;
+    if (joins.length === 1 && op !== '=') bounds = { field: child, op };
+    predicates.push(op === '<>' ? `(${lhs} < ${rhs} OR ${lhs} > ${rhs})` : `${lhs} ${op} ${rhs}`);
+    bindings.push(child.name);
+    if (op === '<>') bindings.push(child.name);
+  }
+  if (predicates.length) {
+    const candidates = source.store.sql.prepare(`${select} WHERE ${predicates.join(' AND ')}`);
+    const columns = [...targetKeys].join(', ');
+    const hitRows = `FROM ${q(target.table.name)} WHERE _fm_record_id IN (SELECT value FROM json_each(?))`;
+    let sql = `SELECT min(_fm_record_id) AS _fm_record_id, ${columns} ${hitRows} GROUP BY ${columns}`;
+    if (bounds) {
+      // Nested ranges need only the outermost hit; for ≠ the two ends suffice. Never enumerate all parent/hit pairs.
+      const col = q(bounds.field.name);
+      const key = scalarKey(bounds.field);
+      const numeric = bounds.field.type === 'number' ? ` AND typeof(${col}) IN ('integer', 'real')` : '';
+      const extremes = bounds.op === '<>' ? ['ASC', 'DESC'] : [bounds.op.startsWith('<') ? 'DESC' : 'ASC'];
+      const subset = q(`${target.table.name}_hits`);
+      sql = `WITH ${subset} AS MATERIALIZED (SELECT _fm_record_id, ${col} ${hitRows} AND ${col} <> '' AND ${key} IS NOT NULL${numeric}) ` +
+        extremes.map((order) => `SELECT * FROM (SELECT * FROM ${subset} ORDER BY ${key} ${order} LIMIT 1)`).join(' UNION ALL ');
+    }
+    const witnesses = target.store.sql.prepare(sql);
+    for (const hit of witnesses.iterate(JSON.stringify([...hits])) as Iterable<FindRow>) {
+      checkMemory();
+      for (const row of candidates.iterate(...bindings.map((name) => hit[name])) as Iterable<FindRow>) yield { row, witness: Number(hit._fm_record_id) };
+    }
+  }
+  // Only exceptional stored rows need the forward-only path. Without any reversible predicate (e.g. a global,
+  // unstored calculation, asymmetric coercion, or × alone), every source row is a candidate for this hop only.
+  const scans = exceptions.size ? [...exceptions].map((where) => `${select} WHERE ${where}`) : [select];
+  for (const sql of scans) {
+    for (const row of source.store.sql.prepare(sql).iterate() as Iterable<FindRow>) yield { row };
+  }
+}
+
+/** Work back from visible find hits, testing each hop with the same source record, keys and privileges as a forward read. */
+export function relatedFindParents(store: Store, fromId: number, target: Occurrence, hits: Set<number>, privileges?: Privileges): Set<number> {
+  const path = relationPath(store.schema, fromId, target.to.id);
+  if (!path) return new Set();
+  for (const hop of path.reverse()) {
+    if (!hits.size) break;
+    const source = occurrence(store, hop.forward ? hop.rel.leftTableOccurrenceId : hop.rel.rightTableOccurrenceId);
+    if (!source || source.store.local(privileges)?.table(source.table.name).view === false) return new Set();
+    const fields = hop.rel.predicates.filter((p) => p.operator !== '×').map((p) =>
+      source.table.fields.find((f) => f.id === (hop.forward ? p.leftFieldId : p.rightFieldId)));
+    if (fields.some((field) => !field || (privileges && (source.store.fieldHidden(source.table.name, field.name, privileges) ||
+      source.store.fieldMasked(source.table.name, field.name, privileges))))) return new Set();
+    const cols = fields.some((f) => f?.options?.unstored) ? undefined : fields.flatMap((f) => f ? [f.name] : []);
+    const parents = new Set<number>();
+    const single = hits.size === 1 ? hits.values().next().value : undefined;
+    const table = q(target.table.name);
+    const reachesHit = (match: { where: string; params: SqlValue[] }, witness = single) => {
+      if (match.where === '1') return true;
+      if (witness !== undefined) return !!target.store.calc.statement(`SELECT 1 FROM ${table} WHERE _fm_record_id = ? AND ${match.where}`).get(witness, ...match.params);
+      const query = target.store.calc.statement(`SELECT _fm_record_id FROM ${table} WHERE ${match.where}`);
+      for (const rec of query.iterate(...match.params) as Iterable<{ _fm_record_id: number }>) {
+        checkMemory();
+        if (hits.has(Number(rec._fm_record_id))) return true;
+      }
+      return false;
+    };
+    let previous: ReturnType<typeof condition>;
+    let found = false;
+    const select = `SELECT ${projection(source.table, cols)} FROM ${q(source.table.name)}`;
+    for (const { row, witness } of findCandidates(hop, source, target, hits, select)) {
+      checkMemory();
+      const id = Number(row._fm_record_id);
+      if (parents.has(id)) continue;
+      const match = condition(hop, source, target, row, privileges);
+      if (!match) continue;
+      if (witness !== undefined) {
+        if (reachesHit(match, witness)) parents.add(id);
+        continue;
+      }
+      if (!previous || previous.where !== match.where || previous.params.length !== match.params.length ||
+        !match.params.every((value, index) => value === previous!.params[index])) {
+        found = reachesHit(match);
+        previous = match;
+      }
+      if (found) parents.add(id);
+    }
+    hits = parents;
+    target = source;
+  }
+  return hits;
 }
 
 /**

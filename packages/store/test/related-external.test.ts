@@ -6,6 +6,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createStore, Store } from '../src/index.ts';
+import { relatedRows } from '../src/related.ts';
 
 test('a hop between two tables of another file is read from that file', () => {
   const dir = mkdtempSync(join(tmpdir(), 'tabularius-related-external-'));
@@ -40,6 +41,23 @@ test('a hop between two tables of another file is read from that file', () => {
     // Picker has no Phone or Method table of its own: reading one here failed with "no such table".
     const [v] = picker.evaluateEach('Picker', ['List ( Method::Kind )'], Number(id));
     assert.equal(v?.value, 'mobile');
+
+    data.create('Phone', { Kind: 'home' });
+    const other = picker.create('Picker', { Kind: 'home' }).recordId;
+    const access = { view: true, edit: false, create: false, delete: false };
+    data.savePrivilegeSet({ name: 'Reader', records: access, tables: { Phone: { ...access, view: 'Kind = "mobile"' } },
+      layouts: 'viewOnly', valueLists: 'viewOnly', scripts: 'viewOnly', extendedPrivileges: ['fmapp'] });
+    picker.siblings = () => [data];
+    data.setPassword('reader', 'pw', 'Reader');
+    picker.setPassword('reader', 'pw', '[Full Access]');
+    const privileges = picker.privileges('reader');
+    const occ = (name: string) => picker.schema.tableOccurrences.find((to) => to.name === name)!.id;
+    const forward = [id, other].filter((key) => relatedRows(picker, occ('Picker'), { _fm_record_id: key, Kind: key === id ? 'mobile' : 'home' },
+      occ('Method'), { privileges })!.rows.some((row) => row.Kind));
+    assert.deepEqual(forward, [id]);
+    const criteria = { 'Method::Kind': '*' };
+    assert.deepEqual(picker.findIds('Picker', { query: [criteria], privileges }), forward);
+    assert.deepEqual(picker.findIds('Picker', { query: [{ ...criteria, omit: 'true' }], privileges }), [other]);
   } finally {
     picker.close();
     data.close();
