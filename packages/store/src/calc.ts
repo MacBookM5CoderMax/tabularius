@@ -32,7 +32,7 @@ import { checkMemory, timeLeft } from './errors.ts';
 import { traceNote, tracing } from './trace.ts';
 import { schemaVisibility, tableDDL } from './table-ddl.ts';
 import { customFunctionDef } from './javascript.ts';
-import { relatedRows, relationPath, matchPredicate } from './related.ts';
+import { relatedRows, relationPath, matchPredicate, exceptionalMatchKeys } from './related.ts';
 import { repetitionText } from './text-styles.ts';
 import { foldCase, sortFunction, sortLanguage } from '../../calc/src/collation.ts';
 
@@ -1709,14 +1709,16 @@ export class Calculations {
   }
 
   /** Match fields get an index, as FileMaker indexes them, so related lookups stay fast. */
-  ensureIndex(table: Table, field: Field): void {
-    const key = `${table.id}/${field.id}`;
+  ensureIndex(table: Table, field: Field, exceptionsOnly = false): void {
+    const suffix = exceptionsOnly ? '_exceptions' : '';
+    const key = `${table.id}/${field.id}${suffix}`;
     if (this.indexed.value.has(key)) return;
-    const name = `_fm_match_${table.id}_${field.id}`;
+    const name = `_fm_match_${table.id}_${field.id}${suffix}`;
     const nocase = field.type === 'text' ? ' COLLATE NOCASE' : '';
     try {
-      this.store.sql.exec(`CREATE INDEX IF NOT EXISTS ${q(name)} ON ${q(table.name)} (${q(field.name)}${nocase})`);
-      if (field.type === 'decimal') this.store.sql.exec(`CREATE INDEX IF NOT EXISTS ${q(`${name}_range`)} ON ${q(table.name)} (fm_decimal_key(${q(field.name)}))`);
+      const where = exceptionsOnly ? ` WHERE ${exceptionalMatchKeys(field)}` : '';
+      this.store.sql.exec(`CREATE INDEX IF NOT EXISTS ${q(name)} ON ${q(table.name)} (${q(field.name)}${nocase})${where}`);
+      if (!exceptionsOnly && field.type === 'decimal') this.store.sql.exec(`CREATE INDEX IF NOT EXISTS ${q(`${name}_range`)} ON ${q(table.name)} (fm_decimal_key(${q(field.name)}))`);
       this.indexed.value.add(key);
     } catch {
       // A read-only or busy database still answers, just without the index.

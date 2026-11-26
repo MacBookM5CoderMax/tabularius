@@ -49,7 +49,7 @@ import { accessReport, explainAccess, diffPrivilegeSet, testAccount, type Access
 import { accessDenialContext, denialAuditDetail, denialAuditSuppressed, type AccessDenial, type DenialAudit, type AccessOperation, type RuleOutcome } from './access-denial.ts';
 import { applyOps, DesignError, type DeletedDesign, type DesignOp, type Effect } from './design.ts';
 import { childIds, childrenWithKeys, emptyKey, foreignKeysOf, orphans, parentHas, sameKey, type ResolvedForeignKey } from './foreign-keys.ts';
-import { occurrence, occurrenceByName, firstRelatedEach, relatedIdList, relatedKeys, relatedRows, type Occurrence, type RelatedResult } from './related.ts';
+import { occurrence, occurrenceByName, firstRelatedEach, relatedFindParents, relatedIdList, relatedKeys, relatedRows, type Occurrence, type RelatedResult } from './related.ts';
 import { DESIGN_TABLE, DESIGN_SCRIPTS, DESIGN_TABLES, RecordLocks, writer, type Change, type ChangeKind, type Transaction } from './activity.ts';
 import { accountNameProblem } from './security-names.ts';
 import { accountCollisionKey, accountKey, AccountImportError, ensureAccountImportTables, importDigest, isRecoveryAdministrator, parseAccountCsv, planAccountImport, type ImportAccount, type AccountImportPreview, type AccountImportResult } from './account-provisioning.ts';
@@ -9745,23 +9745,18 @@ export class Store {
       }
       const child = findWhere([query], fields, (v, t) => occ.store.normalize(v, t, order), undefined, undefined, () => occ.store.duplicateSource(q(occ.table.name), occ.table, pv), findScope(occ.store, occ.table.name));
       const rule = pv?.table(occ.table.name).view ?? true;
+      this.refreshShadow(info.table);
       const ids = new Set<number>();
-      const matched = (row: Record<string, SqlValue>) => {
-        if (rule !== true && !occ.store.allows(occ.table, rule, row, pv!.account)) return;
-        for (const r of relatedRows(graph, target.id, row, from.id)?.rows ?? []) ids.add(Number(r._fm_record_id));
-      };
-      if (!computed.length) {
-        for (const row of occ.store.sql.prepare(`SELECT * FROM ${q(occ.table.name)} WHERE ${child.where}`).iterate(...child.params) as Iterable<Record<string, SqlValue>>) {
-          checkMemory();
-          matched(row);
-        }
-      } else {
-        for (const row of occ.store.computedRows(occ.table, child, computed, later, fields, privileges, order)) {
-          checkMemory();
-          matched(row);
-        }
+      const columns = rule === true ? '_fm_record_id' : '*';
+      const matches = computed.length ? occ.store.computedRows(occ.table, child, computed, later, fields, privileges, order)
+        : occ.store.sql.prepare(`SELECT ${columns} FROM ${q(occ.table.name)} WHERE ${child.where}`).iterate(...child.params) as Iterable<Record<string, SqlValue>>;
+      for (const row of matches) {
+        checkMemory();
+        if (rule !== true && !occ.store.allows(occ.table, rule, row, pv!.account)) continue;
+        ids.add(Number(row._fm_record_id));
       }
-      return { where: '_fm_record_id IN (SELECT value FROM json_each(?))', params: [JSON.stringify([...ids])] };
+      const parents = relatedFindParents(graph, from.id, occ, ids, privileges);
+      return { where: '_fm_record_id IN (SELECT value FROM json_each(?))', params: [JSON.stringify([...parents])] };
     };
   }
 
