@@ -310,18 +310,33 @@ export class FmpFile {
    */
   private seek(prefix: Uint8Array[]): number {
     const order = this.leafOrder();
-    let lo = 0;
-    let hi = order.length - 1;
-    // The last leaf whose first value sorts before the prefix. An empty leaf
-    // counts as before; stepping back over empties afterwards keeps that safe.
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      const p = this.firstPath(order[mid]);
-      if (!p || rank(p, prefix) < 0) lo = mid;
-      else hi = mid - 1;
+    let lo = -1;
+    let hi = order.length;
+    const paths = new Map<number, Uint8Array[] | null>();
+    const first = (index: number): Uint8Array[] | null => {
+      if (!paths.has(index)) paths.set(index, this.firstPath(order[index]) ?? null);
+      return paths.get(index)!;
+    };
+    // Find the last nonempty leaf whose first value precedes the prefix.
+    // Empty leaves provide no ordering bound, wherever they occur in the chain.
+    while (hi - lo > 1) {
+      let mid = (lo + hi) >> 1;
+      let path = first(mid);
+      if (!path) {
+        let left = mid - 1;
+        let right = mid + 1;
+        while (left > lo || right < hi) {
+          if (left > lo && (path = first(left))) { mid = left; break; }
+          if (right < hi && (path = first(right))) { mid = right; break; }
+          left--;
+          right++;
+        }
+        if (!path) break;
+      }
+      if (rank(path, prefix) < 0) lo = mid;
+      else hi = mid;
     }
-    while (lo > 0 && !this.firstPath(order[lo])) lo--;
-    return lo;
+    return Math.max(0, lo);
   }
 
   /**
