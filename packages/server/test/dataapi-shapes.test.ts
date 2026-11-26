@@ -15,7 +15,7 @@ import { serve } from '../src/index.ts';
 import { STORE_EXT } from '../src/host.ts';
 import { createStore, type DesignOp, type Store } from '../../store/src/index.ts';
 import { SqliteDriver } from '../../store/src/ess/driver.ts';
-import { allowSqliteStandIn } from '../../store/src/ess/bridge.ts';
+import { allowSqliteStandIn, closeEssBridge } from '../../store/src/ess/bridge.ts';
 import type { LayoutObject } from '../../fmp12/src/index.ts';
 
 let dir: string;
@@ -78,6 +78,9 @@ before(async () => {
 });
 after(async () => {
   await new Promise<void>((resolve) => (server ? server.close(() => resolve()) : resolve()));
+  // The test ESS bridge caches its own outside-driver handle in a worker.
+  closeEssBridge();
+  await new Promise<void>((resolve) => setImmediate(resolve));
   if (dir) rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
 });
 
