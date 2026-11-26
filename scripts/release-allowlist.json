@@ -305,6 +305,11 @@
         "glob": "packages/server/src/data-api.openapi.json",
         "rule": "high-entropy",
         "why": "example tokens in the OpenAPI examples; none is a credential"
+      },
+      {
+        "glob": "site/index.html",
+        "rule": "high-entropy",
+        "why": "the install command's address, whose mixed-case account name reads as random; not a credential"
       }
     ],
     "emails": [
