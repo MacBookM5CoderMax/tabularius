@@ -1448,6 +1448,22 @@
   "why": "Returns related ids or rows to callers that filter them by the account's viewable ids or pass its privileges (relatedRows' privileged branch, OData's `viewable` set, the portal readers); the unprivileged branch is the server's own or full access."
  },
  {
+  "file": "packages/store/src/related.ts",
+  "within": "findCandidates",
+  "api": "sql.prepare",
+  "count": 2,
+  "gate": "checked-before",
+  "why": "Selects candidate parent rows and the already view-filtered hit keys; relatedFindParents keeps a candidate only after condition() applies the caller's record rule and hidden or masked match fields, so no unfiltered row leaves."
+ },
+ {
+  "file": "packages/store/src/related.ts",
+  "within": "reachesHit",
+  "api": "sql.statement",
+  "count": 2,
+  "gate": "checked-before",
+  "why": "Runs only with a match that condition() returned under the caller's privileges, compares against hits already filtered by the view rule, and returns a boolean."
+ },
+ {
   "file": "packages/store/src/security-chain.ts",
   "within": "appendSecurityEvent",
   "api": "sql.prepare",
