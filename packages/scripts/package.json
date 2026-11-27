@@ -1,6 +1,6 @@
 {
   "name": "@tabularius/scripts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Runs FileMaker scripts on the Tabularius server",
   "license": "MIT",
   "type": "module",

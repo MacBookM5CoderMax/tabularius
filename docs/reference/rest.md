@@ -682,7 +682,7 @@ Response `200`:
     "productInfo": {
       "name": "tabularius",
       "buildDate": "10/01/2026",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dateFormat": "MM/dd/yyyy",
       "timeFormat": "HH:mm:ss",
       "timeStampFormat": "MM/dd/yyyy HH:mm:ss"
@@ -5267,7 +5267,7 @@ Response `200`:
 
 ```text
 (text/xml: <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<fmresultset xmlns="http://www.filemaker.com/xml/fmresultset" version="1.0"><error code="0"/><product build="" name="tabularius" version="0.2.0"/><datasource database="Sales" date-format="MM/dd/yyyy" layout="Contacts" table="Contacts" time-format="HH:mm:ss" timestamp-format="MM/dd/yyyy HH:mm:ss" total-count="4"/><metadata><field-definition auto-enter="no" four-digit-year="no" global="no" max-repeat="1" name="Name" not-empty="no" numeric-only="no" result="text" time-of-day="no" type="normal"/> … </metadata><resultset count="2" fetch-size="1"><record mod-id="0" record-id="3"><field name="Name"><data>Cy</data></field> … </record></resultset></fmresultset>)
+<fmresultset xmlns="http://www.filemaker.com/xml/fmresultset" version="1.0"><error code="0"/><product build="" name="tabularius" version="0.3.0"/><datasource database="Sales" date-format="MM/dd/yyyy" layout="Contacts" table="Contacts" time-format="HH:mm:ss" timestamp-format="MM/dd/yyyy HH:mm:ss" total-count="4"/><metadata><field-definition auto-enter="no" four-digit-year="no" global="no" max-repeat="1" name="Name" not-empty="no" numeric-only="no" result="text" time-of-day="no" type="normal"/> … </metadata><resultset count="2" fetch-size="1"><record mod-id="0" record-id="3"><field name="Name"><data>Cy</data></field> … </record></resultset></fmresultset>)
 ```
 
 count is the records found and fetch-size the records returned. Dates are MM/dd/yyyy, times HH:mm:ss and timestamps MM/dd/yyyy HH:mm:ss. A repeating field has a data element for each repetition; a portal is a relatedset with a record for each row. No records found is error 401; FMPXMLRESULT has the same records as ROW/COL/DATA, with each portal field as a column with a DATA for each row. FMPXMLLAYOUT lists the layout's fields in the order it places them, how each is shown (STYLE TYPE), and the value lists they use. This interface does not run scripts, write records or serve container data.
@@ -14088,7 +14088,7 @@ Response `200`:
 ```json
 {
   "server": {
-    "version": "0.2.0",
+    "version": "0.3.0",
     "commit": "a1b2c3d",
     "started": "2026-10-13T07:02:11.000Z",
     "folder": "/srv/fm",

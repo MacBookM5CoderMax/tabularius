@@ -1,6 +1,6 @@
 {
   "name": "@tabularius/fmp12",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Reader for FileMaker .fmp12 files: schema, scripts, layouts and records",
   "license": "MIT",
   "type": "module",

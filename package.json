@@ -1,6 +1,6 @@
 {
   "name": "tabularius",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Open-source, AI-native platform that opens and hosts FileMaker .fmp12 files",
   "license": "MIT",

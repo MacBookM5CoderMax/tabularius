@@ -1,20 +1,20 @@
 # Versions: what a number means, what stays put, what is tested
 
-Tabularius is at version 0.2.0 (the first public release was 0.1.0, tag `v0.1.0`). This page says how versions are numbered, which things a new version leaves alone, which it may change, what is tested where, and how release notes are made. A test (`packages/server/test/version.test.ts`) holds the numbers below to the program.
+Tabularius is at version 0.3.0 (the first public release was 0.1.0, tag `v0.1.0`). This page says how versions are numbered, which things a new version leaves alone, which it may change, what is tested where, and how release notes are made. A test (`packages/server/test/version.test.ts`) holds the numbers below to the program.
 
 ## Where the version is shown
 
 `tabularius --version` (or `-v`, or `tabularius version`) prints three lines:
 
 ```
-tabularius 0.2.0
+tabularius 0.3.0
 commit a1b2c3d
 Node 22.20 or newer is needed; this is Node 22.20.0
 ```
 
 The same version is in the web client's Help > About, at the top of the admin console, in the Data API's `productInfo`, in the admin status (`GET /tabularius/admin/v1/status`, with the commit), in the metrics (`tabularius_build_info`), in the MCP handshake and in `tabularius info`. They all read it from `packages/server/package.json`; the oldest Node comes from `engines.node` in the top `package.json`. The commit is the checkout's HEAD, or, in a release program, the commit it was built from. It says `unknown` for a copy of the files taken out of git.
 
-To change the version, run `npm version 0.2.0 --workspaces --include-workspace-root --no-git-tag-version` in the repository. It sets the same number in the top package file, the eight package files under `packages/` and the lock file, and tags nothing. The test fails if the files disagree or any source file writes the number out.
+To change the version, run `npm version 0.3.0 --workspaces --include-workspace-root --no-git-tag-version` in the repository. It sets the same number in the top package file, the eight package files under `packages/` and the lock file, and tags nothing. The test fails if the files disagree or any source file writes the number out.
 
 ## What 0.x means
 

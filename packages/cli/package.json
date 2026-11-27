@@ -1,6 +1,6 @@
 {
   "name": "@tabularius/cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Command-line tool to inspect and convert FileMaker .fmp12 files",
   "license": "MIT",
   "type": "module",

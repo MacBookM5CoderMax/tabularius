@@ -1448,7 +1448,7 @@
                     "productInfo": {
                       "name": "tabularius",
                       "buildDate": "10/01/2026",
-                      "version": "0.2.0",
+                      "version": "0.3.0",
                       "dateFormat": "MM/dd/yyyy",
                       "timeFormat": "HH:mm:ss",
                       "timeStampFormat": "MM/dd/yyyy HH:mm:ss"

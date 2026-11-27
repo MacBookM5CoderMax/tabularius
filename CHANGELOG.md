@@ -2,6 +2,30 @@
 
 What changed in each version of Tabularius, newest first. Each area lists its newest changes; work on reading FileMaker files is counted, not listed.
 
+## 0.3.0
+
+The full notes are in the release notes for v0.3.0 (`.github/release-notes/v0.3.0.md`) and in `docs/upgrading.md`.
+
+### Changes
+
+- **Fixed: conversion could skip records.** A file whose record index held an empty block could be converted with a table's records and containers missing. If you converted a file with an earlier version, compare record counts and convert again if they differ.
+- **Fixed: related finds.** A find on a related table now follows the same access rules as reading through the relationship, and returns every match instead of stopping at 10,000.
+- **Outside SQL sources.** Shadow tables with write-through. PostgreSQL can be added in Connections; MySQL, SQL Server and Oracle Connections binding is coming, and the Connections path has not been run against a real server.
+- **QR codes** can be read from images in scripts and calculations.
+- **`fmp://` links** work in the web client, and the OnWindowTransaction trigger runs (set it in design mode).
+- **XML publishing** has opt-in script phases and record writes that are off by default.
+- **`tabularius compatibility-report`** gives a counts-only report of one file.
+- **Security.** File access authorization across hosted files, single-use OAuth `fmDataSource` grants, no control characters in account names, SQL statements refused after a password reset, and more redaction in diagnostics.
+- **Command-line tools** stop on more unknown options and missing values.
+
+### Known problems
+
+- In a multi-file transaction, a failure in a later file can leave earlier files committed.
+- `Min` and `Max` of text values can give a different answer when a blank argument is added.
+- After converting a file again, undoing an older change to a container field can point at the wrong or a missing file.
+- Converting a file with missing or very large contents in a repeating container field can leave a dangling reference.
+- The Windows program is built only if it passes its check.
+
 ## 0.2.0
 
 The full notes, with what to check before upgrading, are in the release notes for v0.2.0 (`.github/release-notes/v0.2.0.md`) and in `docs/upgrading.md`.
